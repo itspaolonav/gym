@@ -6,7 +6,11 @@
 <meta name="theme-color" content="#E9ECE8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#141B21" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Ripartenza">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>Ripartenza: riattivamento e PHUL</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏋️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -250,7 +254,7 @@ h2 {
 .hint { color: var(--muted); font-size: .9rem; margin: -.3rem 0 .7rem; }
 .set {
   display: grid;
-  grid-template-columns: 1.3rem 1fr 1fr;
+  grid-template-columns: 1.3rem 1fr 1fr 2.9rem;
   gap: .5rem;
   align-items: center;
   margin-bottom: .45rem;
@@ -392,6 +396,87 @@ h3 {
 .del[data-armed] { color: var(--red); font-weight: 600; }
 .empty { color: var(--muted); padding: 1rem .25rem; margin: 0; border-bottom: 1px solid var(--line); }
 
+/* Pulsante recupero accanto alla serie */
+.go {
+  appearance: none;
+  width: 2.9rem;
+  height: 2.9rem;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: transparent;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+}
+.go svg { width: 1.25rem; height: 1.25rem; }
+.go[data-running] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+/* Barra del timer */
+.timer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  background: var(--ink);
+  color: var(--bg);
+  padding: .8rem 1rem calc(.8rem + env(safe-area-inset-bottom));
+}
+.timer.over { background: var(--green); color: #fff; }
+.t-in { max-width: 38rem; margin: 0 auto; }
+.t-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; }
+.t-label { font-size: .92rem; opacity: .85; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-bottom: .3rem; }
+.t-label b { display: block; font-weight: 600; opacity: 1; font-size: 1rem; }
+.t-time {
+  appearance: none;
+  background: none;
+  border: 0;
+  color: inherit;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 3.2rem;
+  line-height: .95;
+  font-variant-numeric: tabular-nums;
+  text-decoration: underline dotted;
+  text-decoration-thickness: 2px;
+  text-underline-offset: .2em;
+  flex: none;
+}
+.timer.over .t-time { text-decoration: none; cursor: default; }
+.t-bar { height: 4px; border-radius: 2px; background: color-mix(in srgb, currentColor 22%, transparent); margin: .55rem 0 .65rem; overflow: hidden; }
+.t-bar i { display: block; height: 100%; width: 0; background: var(--yellow); }
+.t-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; margin-bottom: .6rem; }
+.t-ctrl { display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: .5rem; }
+.t-ctrl.one { grid-template-columns: 1fr; }
+.t-btn {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+  background: transparent;
+  color: inherit;
+  border-radius: 6px;
+  min-height: 2.9rem;
+  padding: 0 .7rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+.t-presets .t-btn { min-height: 2.4rem; }
+.t-btn.solid { background: var(--bg); color: var(--ink); border-color: var(--bg); }
+.timer.over .t-btn.solid { background: #fff; color: #10301e; border-color: #fff; }
+.t-note { font-size: .85rem; opacity: .85; margin: .55rem 0 0; }
+.t-note button { appearance: none; background: none; border: 0; color: inherit; text-decoration: underline; padding: 0; cursor: pointer; font-weight: 600; }
+body.has-timer .wrap { padding-bottom: calc(14rem + env(safe-area-inset-bottom)); }
+
+/* Notifiche */
+.push { margin-top: 1rem; padding: .9rem 1rem; background: var(--surface); border-radius: 6px; }
+.push p { margin: 0 0 .7rem; }
+.push p:last-child { margin-bottom: 0; }
+.push .btn { margin-right: .4rem; margin-bottom: .2rem; }
+.push-state { font-weight: 600; display: flex; align-items: center; gap: .45rem; }
+
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 [hidden] { display: none !important; }
 
@@ -409,7 +494,7 @@ h3 {
 <div class="wrap">
   <header>
     <h1>Ripartenza</h1>
-    <p>Tocca un esercizio per registrare carichi e ripetizioni di ogni serie. Lo storico si esporta in CSV per studiare le progressioni.</p>
+    <p>Tocca un esercizio per registrare carichi e ripetizioni. Il cronometro accanto a ogni serie avvia il recupero.</p>
   </header>
 
   <div class="tabs" role="tablist" aria-label="Schede">
@@ -455,7 +540,11 @@ h3 {
   </section>
 
   <section id="panel-s" role="tabpanel" aria-labelledby="tab-s" hidden>
-    <p class="intro">I dati restano solo in questo browser. Fai un backup ogni tanto e prima di cambiare telefono o caricare una nuova versione della pagina.</p>
+    <h3>Notifiche del recupero</h3>
+    <div class="push" id="push-box" aria-live="polite"></div>
+
+    <h3>I tuoi dati</h3>
+    <p class="intro" style="margin-top:0">I dati restano solo in questo browser. Fai un backup ogni tanto e prima di cambiare telefono o caricare una nuova versione della pagina.</p>
     <p class="warn" id="storage-warn" hidden>Questo browser non sta salvando i dati, forse sei in navigazione privata. Quello che registri si perde alla chiusura della pagina.</p>
     <div class="actions">
       <button class="btn" id="export-csv">Esporta CSV</button>
@@ -472,6 +561,8 @@ h3 {
     <ul class="sessions" id="sessions"></ul>
   </section>
 </div>
+
+<div class="timer" id="timer" role="region" aria-label="Recupero" hidden></div>
 
 <script>
 const REST = { r2: "Rec. 2'", r90: 'Rec. 90"', r60: 'Rec. 60"', r3: "Rec. 3'", r23: "Rec. 2–3'", r34: "Rec. 3–4'" };
@@ -555,6 +646,11 @@ const PHUL = [
     { n: "Polpacci seduto", sets: "3", reps: "12–20", rpe: "RPE 9", rest: REST.r60 }
   ]}
 ];
+
+// Secondi di recupero di default per ogni indicazione (nei range: valore intermedio)
+const REST_SEC = { [REST.r2]: 120, [REST.r90]: 90, [REST.r60]: 60, [REST.r3]: 180, [REST.r23]: 150, [REST.r34]: 210 };
+const restSec = r => REST_SEC[r] || 90;
+const fmtT = s => { s = Math.max(0, Math.ceil(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
 
 const LIFTS = ["Panca piana", "Squat", "Stacco da terra", "Military press", "Trazioni zavorrate", "Hip thrust"];
 
@@ -643,6 +739,7 @@ function exDone(e, sets) {
 }
 
 /* ---------- render: training tabs ---------- */
+const CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 1.5M10 2.5h4M12 2.5V6"/></svg>';
 const CHECK = '<svg viewBox="0 0 16 16" fill="none" stroke="var(--bg)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
 
 function renderDays(tab) {
@@ -673,6 +770,7 @@ function exRow(tab, day, e, i, entries) {
         <input inputmode="decimal" enterkeyhint="next" autocomplete="off" data-ex="${i}" data-set="${k}" data-f="kg" value="${cur.kg != null ? esc(num(cur.kg)) : ""}" placeholder="${p.kg != null ? esc(num(p.kg)) : "–"}"><span aria-hidden="true">kg</span></label>
       <label class="field"><span class="sr-only">Serie ${k + 1}, ${esc(e.unit || "ripetizioni")}</span>
         <input inputmode="numeric" enterkeyhint="next" autocomplete="off" data-ex="${i}" data-set="${k}" data-f="reps" value="${cur.reps != null ? esc(num(cur.reps)) : ""}" placeholder="${p.reps != null ? esc(num(p.reps)) : "–"}"><span aria-hidden="true">${esc(e.unit || "reps")}</span></label>
+      <button class="go" data-go="${i}" data-set="${k}" aria-label="Avvia recupero dopo la serie ${k + 1}, ${esc(fmtT(restSec(e.rest)))}">${CLOCK}</button>
     </div>`;
   }
   const lastLine = prev
@@ -715,6 +813,7 @@ function renderDay(tab) {
       <span class="count" data-count>${countDone(tab)} di ${day.ex.length} fatti</span>
     </div>
     <ul class="list">${rows}</ul>`;
+  markRunning();
 }
 
 function refreshRow(tab, i) {
@@ -911,6 +1010,19 @@ document.querySelectorAll(".plate").forEach(b => b.addEventListener("click", () 
   const box = document.getElementById(`day-${tab}`);
 
   box.addEventListener("click", e => {
+    const go = e.target.closest("[data-go]");
+    if (go) {
+      const day = currentDay(tab);
+      const i = +go.dataset.go, k = +go.dataset.set;
+      const ex = day.ex[i];
+      const { max } = setRange(ex);
+      const after = day.ex[i + 1];
+      const next = k + 1 < max
+        ? `${ex.n}: tocca alla serie ${k + 2}`
+        : after ? `Prossimo esercizio: ${after.n}` : `${day.title} finito, bel lavoro`;
+      startTimer(restSec(ex.rest), ex.n, `Dopo la serie ${k + 1}`, `${tab}|${i}|${k}`, next);
+      return;
+    }
     const t = e.target.closest("[data-toggle]");
     if (t) {
       const i = +t.dataset.toggle;
@@ -1011,7 +1123,309 @@ document.getElementById("sessions").addEventListener("click", e => {
   document.getElementById("status").textContent = "Sessione eliminata.";
 });
 
+/* ---------- timer di recupero ---------- */
+const timerEl = document.getElementById("timer");
+let timer = store.get("ripartenza-timer", null); // { endAt, total, ex, set, key, over }
+let tickH = null;
+let presetsOpen = false;
+let audioCtx = null;
+let remoteNote = "";
+const PRESETS = [60, 90, 120, 150, 180, 240];
+
+const saveTimer = () => store.set("ripartenza-timer", timer);
+const remaining = () => timer ? (timer.endAt - Date.now()) / 1000 : 0;
+
+function unlockAudio() {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+  } catch {}
+}
+function beep() {
+  try {
+    if (!audioCtx) return;
+    const t0 = audioCtx.currentTime;
+    [0, .28, .56].forEach(d => {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.frequency.value = 880; o.type = "sine";
+      g.gain.setValueAtTime(0.0001, t0 + d);
+      g.gain.exponentialRampToValueAtTime(0.4, t0 + d + .02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + .2);
+      o.connect(g).connect(audioCtx.destination);
+      o.start(t0 + d); o.stop(t0 + d + .22);
+    });
+  } catch {}
+  try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch {}
+}
+
+function startTimer(seconds, ex, set, key, next) {
+  unlockAudio();
+  timer = { endAt: Date.now() + seconds * 1000, total: seconds, ex, set, key: key || null, next: next || "", over: false };
+  presetsOpen = false;
+  remoteNote = "";
+  saveTimer();
+  renderTimer();
+  markRunning();
+  ensureTick();
+  syncRemote();
+}
+function adjustTimer(delta) {
+  if (!timer || timer.over) return;
+  const rem = Math.max(5, remaining() + delta);
+  timer.endAt = Date.now() + rem * 1000;
+  timer.total = Math.max(timer.total + delta, rem);
+  saveTimer();
+  tick();
+  syncRemoteSoon();
+}
+function setTimer(seconds) {
+  if (!timer) return;
+  timer.endAt = Date.now() + seconds * 1000;
+  timer.total = seconds;
+  timer.over = false;
+  presetsOpen = false;
+  saveTimer();
+  renderTimer();
+  ensureTick();
+  syncRemote();
+}
+function stopTimer() {
+  const wasRunning = timer && !timer.over;
+  timer = null;
+  presetsOpen = false;
+  saveTimer();
+  renderTimer();
+  markRunning();
+  if (wasRunning) syncRemote(); else setRemoteId(null);
+}
+
+function ensureTick() { if (!tickH) tickH = setInterval(tick, 250); }
+function tick() {
+  if (!timer) { clearInterval(tickH); tickH = null; return; }
+  const rem = remaining();
+  if (rem <= 0 && !timer.over) {
+    timer.over = true;
+    saveTimer();
+    setRemoteId(null); // la notifica programmata è già partita
+    if (!document.hidden) beep();
+    renderTimer();
+    markRunning();
+    return;
+  }
+  if (timer.over) return;
+  const tEl = timerEl.querySelector("[data-t-time]");
+  const bar = timerEl.querySelector(".t-bar i");
+  if (tEl) tEl.textContent = fmtT(rem);
+  if (bar) bar.style.width = `${Math.min(100, (1 - rem / timer.total) * 100)}%`;
+}
+
+function markRunning() {
+  document.querySelectorAll(".go[data-running]").forEach(b => b.removeAttribute("data-running"));
+  if (!timer || timer.over || !timer.key) return;
+  const [tab, i, k] = timer.key.split("|");
+  const b = document.querySelector(`#day-${tab} .go[data-go="${i}"][data-set="${k}"]`);
+  if (b) b.setAttribute("data-running", "");
+}
+
+function renderTimer() {
+  if (!timer) {
+    timerEl.hidden = true;
+    timerEl.innerHTML = "";
+    document.body.classList.remove("has-timer");
+    return;
+  }
+  timerEl.hidden = false;
+  document.body.classList.add("has-timer");
+  timerEl.classList.toggle("over", !!timer.over);
+
+  const what = `<span class="t-label"><b>${esc(timer.ex || "Recupero")}</b>${esc(timer.set || "")}</span>`;
+  let note = "";
+  if (!timer.over) {
+    if (remoteNote) note = `<p class="t-note">${esc(remoteNote)}</p>`;
+    else if (!push.active) note = `<p class="t-note">Notifiche non attive: tieni l'app aperta. <button data-t="setup">Attivale</button></p>`;
+  }
+
+  if (timer.over) {
+    timerEl.innerHTML = `<div class="t-in">
+      <div class="t-top"><span class="t-label"><b>Recupero finito</b>${esc(timer.next || timer.ex || "")}</span><span class="t-time" aria-hidden="true">0:00</span></div>
+      <div class="t-bar"><i style="width:100%;background:#fff"></i></div>
+      <div class="t-ctrl"><button class="t-btn" data-t="again">Altri 30"</button><button class="t-btn" data-t="restart" aria-label="Ripeti ${esc(fmtT(timer.total))}">Ripeti</button><button class="t-btn solid" data-t="close">Chiudi</button></div>
+    </div>`;
+    return;
+  }
+
+  const presets = presetsOpen
+    ? `<div class="t-presets" role="group" aria-label="Imposta durata">${PRESETS.map(s => `<button class="t-btn" data-t="set" data-s="${s}">${fmtT(s)}</button>`).join("")}</div>`
+    : "";
+  timerEl.innerHTML = `<div class="t-in">
+    <div class="t-top">${what}<button class="t-time" data-t="edit" data-t-time aria-expanded="${presetsOpen}" aria-label="Tempo rimanente. Tocca per cambiare durata">${fmtT(remaining())}</button></div>
+    <div class="t-bar"><i></i></div>
+    ${presets}
+    <div class="t-ctrl"><button class="t-btn" data-t="minus" aria-label="Togli 15 secondi">−15"</button><button class="t-btn" data-t="plus" aria-label="Aggiungi 15 secondi">+15"</button><button class="t-btn solid" data-t="stop">Ferma</button></div>
+    ${note}
+  </div>`;
+  tick();
+}
+
+timerEl.addEventListener("click", e => {
+  const b = e.target.closest("[data-t]");
+  if (!b) return;
+  const a = b.dataset.t;
+  if (a === "minus") adjustTimer(-15);
+  else if (a === "plus") adjustTimer(15);
+  else if (a === "stop" || a === "close") stopTimer();
+  else if (a === "edit") { presetsOpen = !presetsOpen; renderTimer(); }
+  else if (a === "set") setTimer(+b.dataset.s);
+  else if (a === "again") { unlockAudio(); setTimer(30); }
+  else if (a === "restart") { unlockAudio(); setTimer(timer.total); }
+  else if (a === "setup") { state.tab = "s"; render(); document.getElementById("push-box").scrollIntoView({ block: "center" }); }
+});
+
+document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+
+/* ---------- notifiche push (via /api) ---------- */
+const canServe = location.protocol === "https:" || location.hostname === "localhost";
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const push = {
+  supported: canServe && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window,
+  server: null,   // null = non so ancora, true/false
+  key: null,
+  active: false,
+  busy: false,
+  error: ""
+};
+let remoteId = store.get("ripartenza-msg", null);
+const setRemoteId = id => { remoteId = id; store.set("ripartenza-msg", id); };
+
+function b64ToBytes(b64) {
+  const pad = "=".repeat((4 - b64.length % 4) % 4);
+  const raw = atob((b64 + pad).replace(/-/g, "+").replace(/_/g, "/"));
+  return Uint8Array.from(raw, c => c.charCodeAt(0));
+}
+async function api(path, body) {
+  const res = await fetch(path, body
+    ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
+    : {});
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+async function getSubscription(create) {
+  const reg = await navigator.serviceWorker.ready;
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub && create && Notification.permission === "granted" && push.key) {
+    sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(push.key) });
+  }
+  return sub;
+}
+
+let remoteChain = Promise.resolve();
+let soonH = null;
+function syncRemoteSoon() { clearTimeout(soonH); soonH = setTimeout(syncRemote, 700); }
+function syncRemote() {
+  clearTimeout(soonH);
+  remoteChain = remoteChain.then(async () => {
+    const rem = timer && !timer.over ? Math.round(remaining()) : 0;
+    try {
+      if (rem < 3) {
+        if (remoteId) { const id = remoteId; setRemoteId(null); await api("/api/timer", { action: "cancel", id }); }
+        return;
+      }
+      if (!push.active) return;
+      const sub = await getSubscription(true);
+      if (!sub) { push.active = false; renderPush(); return; }
+      const out = await api("/api/timer", {
+        action: "start",
+        id: remoteId,
+        delay: rem,
+        title: "Recupero finito",
+        body: timer.next || timer.ex || "Si riparte",
+        subscription: sub.toJSON()
+      });
+      setRemoteId(out.id || null);
+      if (remoteNote) { remoteNote = ""; renderTimer(); }
+    } catch {
+      if (timer && !timer.over) {
+        remoteNote = "Notifica non programmata: controlla la connessione. Il timer nell'app funziona comunque.";
+        renderTimer();
+      }
+    }
+  });
+}
+
+async function initPush() {
+  if (!push.supported) { renderPush(); return; }
+  try { await navigator.serviceWorker.register("/sw.js"); } catch {}
+  try {
+    const cfg = await api("/api/vapid");
+    push.server = !!(cfg && cfg.ready && cfg.key);
+    push.key = cfg && cfg.key;
+  } catch { push.server = false; }
+  if (push.server && Notification.permission === "granted") {
+    try { push.active = !!(await getSubscription(true)); } catch { push.active = false; }
+  }
+  renderPush();
+  if (timer) renderTimer();
+}
+
+async function enablePush() {
+  push.busy = true; push.error = ""; renderPush();
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm === "granted") {
+      push.active = !!(await getSubscription(true));
+      if (!push.active) push.error = "Non sono riuscito a registrare il telefono per le notifiche. Riprova.";
+    }
+  } catch {
+    push.error = "Non sono riuscito ad attivare le notifiche. Riprova tra poco.";
+  }
+  push.busy = false;
+  renderPush();
+  if (timer) { renderTimer(); syncRemote(); }
+}
+
+function renderPush() {
+  const box = document.getElementById("push-box");
+  let html;
+  if (!push.supported) {
+    html = isIOS && !standalone
+      ? `<p class="push-state">Aggiungi l'app alla schermata Home</p>
+         <p>Su iPhone le notifiche arrivano solo all'app aperta dall'icona, non alla pagina in Safari. In Safari tocca Condividi, poi "Aggiungi alla schermata Home", e apri Ripartenza da lì.</p>
+         <p>Prima scarica il backup qui sotto: l'app sulla Home ha un archivio separato da Safari e dovrai importarlo.</p>`
+      : `<p class="push-state">Notifiche non disponibili</p><p>Questo browser non supporta le notifiche web. Il timer funziona comunque mentre l'app è aperta.</p>`;
+  } else if (push.server === null) {
+    html = `<p>Controllo le notifiche…</p>`;
+  } else if (!push.server) {
+    html = `<p class="push-state">Server delle notifiche non configurato</p><p>Mancano le chiavi nelle impostazioni del progetto su Vercel. Il timer funziona comunque mentre l'app è aperta.</p>`;
+  } else if (Notification.permission === "denied") {
+    html = `<p class="push-state">Notifiche bloccate</p><p>Riattivale in Impostazioni → Notifiche → Ripartenza, poi riapri l'app.</p>`;
+  } else if (push.active) {
+    html = `<p class="push-state"><i class="dot" style="--c:var(--green)"></i>Notifiche attive</p>
+      <p>A fine recupero ti arriva una notifica anche con il telefono bloccato. Se fermi o cambi il timer, la notifica si sposta o si annulla.</p>
+      <button class="btn secondary" data-push="test">Prova: notifica tra 10 secondi</button>`;
+  } else {
+    html = `<p>Attivale per ricevere un avviso a fine recupero anche con il telefono bloccato.</p>
+      <button class="btn" data-push="enable"${push.busy ? " disabled" : ""}>${push.busy ? "Attivo…" : "Attiva notifiche"}</button>`;
+  }
+  if (push.error) html += `<p class="push-state" style="color:var(--red)">${esc(push.error)}</p>`;
+  box.innerHTML = html;
+}
+
+document.getElementById("push-box").addEventListener("click", e => {
+  const b = e.target.closest("[data-push]");
+  if (!b) return;
+  if (b.dataset.push === "enable") enablePush();
+  if (b.dataset.push === "test") startTimer(10, "Prova notifica", "Blocca il telefono adesso", null, "La notifica funziona");
+});
+
 render();
+if (timer) {
+  if (!timer.over && remaining() <= 0) { timer.over = true; saveTimer(); setRemoteId(null); }
+  renderTimer();
+  markRunning();
+  ensureTick();
+}
+initPush();
 </script>
 </body>
 </html>

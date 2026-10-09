@@ -1,0 +1,10 @@
+{
+  "name": "ripartenza",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "@upstash/qstash": "^2.12.0",
+    "web-push": "^3.6.7"
+  }
+}
